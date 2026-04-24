@@ -1,6 +1,7 @@
 import streamlit as st
 import numpy as np
 import plotly.graph_objects as go
+import streamlit.components.v1 as components
 
 # ==========================================
 # 1. APP CONFIGURATION & CYBER THEME
@@ -20,8 +21,20 @@ st.markdown("""
     div[data-baseweb="input"] > div, div[data-baseweb="select"] > div {
         background-color: #111827 !important;
         border: 1px solid #1e3a8a !important;
-        color: #00f3ff !important;
         border-radius: 4px !important;
+    }
+    
+    /* FORCE TEXT COLOR INSIDE INPUTS TO BE BRIGHT WHITE */
+    input[type="number"], input[type="text"] {
+        color: #ffffff !important;
+        -webkit-text-fill-color: #ffffff !important;
+        font-weight: bold;
+    }
+    
+    /* FORCE DROPDOWN TEXT TO BE BRIGHT WHITE */
+    div[data-baseweb="select"] span {
+        color: #ffffff !important;
+        font-weight: bold;
     }
     
     /* Glowing Monospace Metrics */
@@ -166,37 +179,89 @@ mc3.markdown(f"<div class='metric-label'>Total System Head</div><div class='metr
 mc4.markdown(f"<div class='metric-label'>Req. Pump Power</div><div class='metric-value'>{P_kw:.2f} kW</div>", unsafe_allow_html=True)
 
 # ==========================================
-# 7. NEW VISUAL: 2D PRESSURE GRADIENT MAP
+# 7. LIVE FLOW VISUALIZER (HTML/JS INJECTION)
 # ==========================================
 st.markdown("---")
-st.markdown("#### 🌊 DIGITAL TWIN: PRESSURE GRADIENT")
+st.markdown("#### 🌊 LIVE FLOW DYNAMICS")
 
-# Generate grid for the pipe visual
+particle_animation = """
+<style>
+    .pipe-container {
+        width: 100%;
+        height: 120px;
+        background: linear-gradient(to bottom, #0b0f19, #1e3a8a, #0b0f19);
+        border-top: 3px solid #ff0055;
+        border-bottom: 3px solid #ff0055;
+        position: relative;
+        overflow: hidden;
+        border-radius: 5px;
+    }
+    .particle {
+        position: absolute;
+        background-color: #00f3ff;
+        border-radius: 50%;
+        box-shadow: 0px 0px 8px 2px rgba(0, 243, 255, 0.8);
+        animation: flow linear infinite;
+    }
+    @keyframes flow {
+        0% { left: -20px; opacity: 0; }
+        10% { opacity: 1; }
+        90% { opacity: 1; }
+        100% { left: 100%; opacity: 0; }
+    }
+</style>
+
+<div class="pipe-container" id="pipe"></div>
+
+<script>
+    const pipe = document.getElementById('pipe');
+    const particleCount = 75; // Adjust for more/less fluid
+    
+    for(let i = 0; i < particleCount; i++) {
+        let p = document.createElement('div');
+        p.className = 'particle';
+        
+        let size = Math.random() * 6 + 2;
+        p.style.width = size + 'px';
+        p.style.height = size + 'px';
+        p.style.top = Math.random() * 90 + 10 + 'px';
+        p.style.left = Math.random() * 100 + '%';
+        
+        p.style.animationDuration = Math.random() * 1.5 + 0.5 + 's';
+        p.style.animationDelay = Math.random() * 2 + 's';
+        
+        pipe.appendChild(p);
+    }
+</script>
+"""
+components.html(particle_animation, height=130)
+
+# ==========================================
+# 8. NEW VISUAL: 2D PRESSURE GRADIENT MAP
+# ==========================================
+st.markdown("#### 🌡️ DIGITAL TWIN: PRESSURE GRADIENT")
+
 x_grid = np.linspace(0, L, 50)
 y_grid = np.linspace(-D/2, D/2, 20)
 X, Y = np.meshgrid(x_grid, y_grid)
 
-# Simulate pressure dropping linearly across the pipe length
-# We use max pressure at inlet (h_total * rho * g) and 0 at outlet for visualization
 P_inlet = h_total * rho * g / 1000 # kPa
 Z_pressure = P_inlet * (1 - (X / L)) 
 
 fig_pipe = go.Figure()
 
-# Add the pressure heatmap inside the pipe
-# Use a smoothed Heatmap instead of blocky Contours
 fig_pipe.add_trace(go.Heatmap(
     z=Z_pressure, x=x_grid, y=y_grid,
     colorscale="Electric", 
-    zsmooth="best", # This applies the buttery-smooth gradient blend
+    zsmooth="best", 
     colorbar=dict(
         title=dict(text="Pressure (kPa)", font=dict(color="#00f3ff")), 
-        tickfont=dict(color="#e2e8f0"), # Lighter text for the numbers
+        tickfont=dict(color="#e2e8f0"),
         thickness=15
     ),
     name="Pressure Gradient"
 ))
-# Draw the top and bottom pipe walls with neon lines
+
 fig_pipe.add_trace(go.Scatter(x=[0, L], y=[D/2, D/2], mode='lines', line=dict(color='#ff0055', width=4), name='Pipe Wall'))
 fig_pipe.add_trace(go.Scatter(x=[0, L], y=[-D/2, -D/2], mode='lines', line=dict(color='#ff0055', width=4), showlegend=False))
 
@@ -213,7 +278,7 @@ fig_pipe.update_layout(
 st.plotly_chart(fig_pipe, use_container_width=True)
 
 # ==========================================
-# 8. SYSTEM CURVE PLOTTING
+# 9. SYSTEM CURVE PLOTTING
 # ==========================================
 st.markdown("#### 📈 SYSTEM RESISTANCE CURVE")
 q_array = np.linspace(0.001, Q * 1.5, 50)
