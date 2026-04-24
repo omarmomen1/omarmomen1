@@ -184,13 +184,15 @@ Z_pressure = P_inlet * (1 - (X / L))
 fig_pipe = go.Figure()
 
 # Add the pressure heatmap inside the pipe
-fig_pipe.add_trace(go.Contour(
+# Use a smoothed Heatmap instead of blocky Contours
+fig_pipe.add_trace(go.Heatmap(
     z=Z_pressure, x=x_grid, y=y_grid,
-    colorscale="Teal", opacity=0.8,
-    contours=dict(showlines=False),
+    colorscale="Electric", 
+    zsmooth="best", # This applies the buttery-smooth gradient blend
     colorbar=dict(
         title=dict(text="Pressure (kPa)", font=dict(color="#00f3ff")), 
-        tickfont=dict(color="#9ca3af")
+        tickfont=dict(color="#e2e8f0"), # Lighter text for the numbers
+        thickness=15
     ),
     name="Pressure Gradient"
 ))
