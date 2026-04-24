@@ -186,12 +186,14 @@ fig_pipe = go.Figure()
 # Add the pressure heatmap inside the pipe
 fig_pipe.add_trace(go.Contour(
     z=Z_pressure, x=x_grid, y=y_grid,
-    colorscale="Cyan", opacity=0.8,
+    colorscale="Teal", opacity=0.8,
     contours=dict(showlines=False),
-    colorbar=dict(title="Pressure (kPa)", tickfont=dict(color="#9ca3af"), titlefont=dict(color="#00f3ff")),
+    colorbar=dict(
+        title=dict(text="Pressure (kPa)", font=dict(color="#00f3ff")), 
+        tickfont=dict(color="#9ca3af")
+    ),
     name="Pressure Gradient"
 ))
-
 # Draw the top and bottom pipe walls with neon lines
 fig_pipe.add_trace(go.Scatter(x=[0, L], y=[D/2, D/2], mode='lines', line=dict(color='#ff0055', width=4), name='Pipe Wall'))
 fig_pipe.add_trace(go.Scatter(x=[0, L], y=[-D/2, -D/2], mode='lines', line=dict(color='#ff0055', width=4), showlegend=False))
