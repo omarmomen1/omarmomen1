@@ -181,61 +181,79 @@ mc4.markdown(f"<div class='metric-label'>Req. Pump Power</div><div class='metric
 # ==========================================
 # 7. LIVE FLOW VISUALIZER (HTML/JS INJECTION)
 # ==========================================
+# ==========================================
+# 7. LIVE FLOW VISUALIZER (DYNAMIC JS INJECTION)
+# ==========================================
 st.markdown("---")
 st.markdown("#### 🌊 LIVE FLOW DYNAMICS")
 
-particle_animation = """
+# 1. Map Python Physics to Visual Variables
+# Scale pipe height (min 60px, max 300px based on diameter)
+pipe_height_px = max(60, min(300, int(D * 1000))) 
+# Scale animation speed (higher velocity = lower duration in seconds)
+anim_duration_base = max(0.2, 2.0 / (V + 0.1)) 
+# Scale particle count based on flow rate
+particle_qty = int(max(30, min(200, Q * 6000)))
+
+# 2. Inject variables using an f-string (note the double {{}} for CSS/JS syntax)
+particle_animation = f"""
 <style>
-    .pipe-container {
+    .pipe-container {{
         width: 100%;
-        height: 120px;
+        height: {pipe_height_px}px;
         background: linear-gradient(to bottom, #0b0f19, #1e3a8a, #0b0f19);
         border-top: 3px solid #ff0055;
         border-bottom: 3px solid #ff0055;
         position: relative;
         overflow: hidden;
         border-radius: 5px;
-    }
-    .particle {
+        transition: height 0.4s ease-out; /* Smoothly animate height changes */
+    }}
+    .particle {{
         position: absolute;
         background-color: #00f3ff;
         border-radius: 50%;
         box-shadow: 0px 0px 8px 2px rgba(0, 243, 255, 0.8);
         animation: flow linear infinite;
-    }
-    @keyframes flow {
-        0% { left: -20px; opacity: 0; }
-        10% { opacity: 1; }
-        90% { opacity: 1; }
-        100% { left: 100%; opacity: 0; }
-    }
+    }}
+    @keyframes flow {{
+        0% {{ left: -20px; opacity: 0; }}
+        10% {{ opacity: 1; }}
+        90% {{ opacity: 1; }}
+        100% {{ left: 100%; opacity: 0; }}
+    }}
 </style>
 
 <div class="pipe-container" id="pipe"></div>
 
 <script>
     const pipe = document.getElementById('pipe');
-    const particleCount = 75; // Adjust for more/less fluid
+    const particleCount = {particle_qty};
+    const baseSpeed = {anim_duration_base};
     
-    for(let i = 0; i < particleCount; i++) {
+    for(let i = 0; i < particleCount; i++) {{
         let p = document.createElement('div');
         p.className = 'particle';
         
         let size = Math.random() * 6 + 2;
         p.style.width = size + 'px';
         p.style.height = size + 'px';
-        p.style.top = Math.random() * 90 + 10 + 'px';
+        
+        // Random vertical position inside the pipe
+        p.style.top = Math.random() * 90 + 5 + '%';
         p.style.left = Math.random() * 100 + '%';
         
-        p.style.animationDuration = Math.random() * 1.5 + 0.5 + 's';
+        // Speed directly tied to Python fluid velocity
+        p.style.animationDuration = (Math.random() * 0.5 * baseSpeed) + baseSpeed + 's';
         p.style.animationDelay = Math.random() * 2 + 's';
         
         pipe.appendChild(p);
-    }
+    }}
 </script>
 """
-components.html(particle_animation, height=130)
 
+# Render the animation (dynamically set iframe height so it doesn't get cut off)
+components.html(particle_animation, height=pipe_height_px + 20)
 # ==========================================
 # 8. NEW VISUAL: 2D PRESSURE GRADIENT MAP
 # ==========================================
