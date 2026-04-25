@@ -4,88 +4,78 @@ import plotly.graph_objects as go
 import streamlit.components.v1 as components
 
 # ==========================================
-# 1. APP CONFIGURATION & CYBER THEME
+# 1. APP CONFIGURATION & ENTERPRISE LIGHT THEME
 # ==========================================
-st.set_page_config(page_title="HydraCalc Nexus", page_icon="⚡", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="HydraCalc Enterprise", page_icon="💧", layout="wide")
 
-# Injecting Dark Mode / Neon Cyber CSS
 st.markdown("""
 <style>
-    /* Dark cyber background */
+    /* Enterprise Light SaaS Background */
     .stApp {
-        background-color: #0b0f19;
-        color: #e2e8f0;
+        background-color: #f8fafc;
+        color: #0f172a;
+        font-family: 'Inter', -apple-system, sans-serif;
     }
     
-    /* Neon accents for inputs */
+    /* Clean inputs with focus states */
     div[data-baseweb="input"] > div, div[data-baseweb="select"] > div {
-        background-color: #111827 !important;
-        border: 1px solid #1e3a8a !important;
-        border-radius: 4px !important;
+        background-color: #ffffff !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 6px !important;
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     }
     
-    /* FORCE TEXT COLOR INSIDE INPUTS TO BE BRIGHT WHITE */
-    input[type="number"], input[type="text"] {
-        color: #ffffff !important;
-        -webkit-text-fill-color: #ffffff !important;
-        font-weight: bold;
+    /* Text colors inside inputs */
+    input[type="number"], input[type="text"], div[data-baseweb="select"] span {
+        color: #0f172a !important;
+        -webkit-text-fill-color: #0f172a !important;
     }
     
-    /* FORCE DROPDOWN TEXT TO BE BRIGHT WHITE */
-    div[data-baseweb="select"] span {
-        color: #ffffff !important;
-        font-weight: bold;
+    /* Minimalist Header */
+    .saas-header {
+        padding-bottom: 1rem;
+        margin-bottom: 2rem;
+        border-bottom: 1px solid #e2e8f0;
     }
-    
-    /* Glowing Monospace Metrics */
-    .metric-value {
-        font-family: 'Courier New', Courier, monospace;
-        font-size: 2.2rem;
+    .saas-header h1 {
+        color: #0f172a;
         font-weight: 800;
-        color: #00f3ff;
-        text-shadow: 0px 0px 10px rgba(0, 243, 255, 0.5);
+        letter-spacing: -0.5px;
+        margin: 0;
+        font-size: 2.5rem;
+    }
+    .saas-header p {
+        color: #64748b;
+        margin-top: 0.2rem;
+        font-weight: 500;
+    }
+    
+    /* Metric Cards */
+    .metric-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #2563eb; /* Primary Blue */
     }
     .metric-label {
-        font-size: 0.85rem;
+        font-size: 0.8rem;
         text-transform: uppercase;
-        letter-spacing: 2px;
-        color: #9ca3af;
+        letter-spacing: 1px;
+        color: #64748b;
         font-weight: 600;
+        margin-bottom: 0.5rem;
     }
     
     /* Hide default watermarks */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
-    
-    .cyber-header {
-        border-bottom: 2px solid #00f3ff;
-        padding-bottom: 10px;
-        margin-bottom: 30px;
-        box-shadow: 0px 10px 15px -10px rgba(0,243,255,0.2);
-    }
-    .cyber-header h1 {
-        color: #ffffff;
-        font-weight: 900;
-        letter-spacing: 1px;
-        margin: 0;
-    }
-    .cyber-header span {
-        color: #00f3ff;
-    }
-    .cyber-header p {
-        color: #9ca3af;
-        margin: 0;
-        font-weight: 400;
-        letter-spacing: 1px;
-    }
 </style>
 """, unsafe_allow_html=True)
 
 st.markdown("""
-<div class="cyber-header">
-    <h1>⚡ HydraCalc <span>NEXUS</span></h1>
-    <p>ADVANCED FLUID DYNAMICS & SYSTEM MODELING</p>
+<div class="saas-header">
+    <h1>💧 HydraCalc Enterprise</h1>
+    <p>1D Piping Network Engine & Pump Selection</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -97,53 +87,53 @@ FLUID_DB = {
     "Water (80°C)": {"rho": 971.8, "mu": 0.000355},
     "Light Oil": {"rho": 880.0, "mu": 0.0350},
 }
-
-MATERIAL_ROUGHNESS = {
-    "Smooth PVC / Glass": 0.0015,
-    "Commercial Steel": 0.045,
-    "Cast Iron": 0.26,
-}
-
-FITTINGS_DB = {
-    "90° Standard Elbow": 0.75,
-    "Gate Valve (Open)": 0.15,
-    "Swing Check Valve": 2.0
-}
+MATERIAL_ROUGHNESS = {"Smooth PVC / Glass": 0.0015, "Commercial Steel": 0.045, "Cast Iron": 0.26}
+FITTINGS_DB = {"90° Standard Elbow": 0.75, "Gate Valve (Open)": 0.15, "Swing Check Valve": 2.0}
 
 # ==========================================
-# 3. GLOBAL INPUTS (SIDEBAR)
+# 3. TOP RIBBON: GLOBAL PARAMETERS (No Sidebar)
 # ==========================================
-with st.sidebar:
-    st.markdown("### 🎛️ SYSTEM PARAMETERS")
-    fluid_choice = st.selectbox("Operating Fluid", options=list(FLUID_DB.keys()))
-    rho = FLUID_DB[fluid_choice]["rho"]
-    mu = FLUID_DB[fluid_choice]["mu"]
-    
-    flow_rate_m3h = st.number_input("Design Flow Rate (m³/hr)", min_value=0.1, value=50.0, step=5.0)
-    Q = flow_rate_m3h / 3600.0
-    pump_eff = st.slider("Pump Efficiency (%)", 40, 90, 75) / 100.0
+st.markdown("#### 1. System Parameters")
+ribbon_1, ribbon_2, ribbon_3, ribbon_4 = st.columns(4)
+
+with ribbon_1: fluid_choice = st.selectbox("Operating Fluid", options=list(FLUID_DB.keys()))
+with ribbon_2: flow_rate_m3h = st.number_input("Design Flow Rate (m³/hr)", min_value=0.1, value=50.0, step=5.0)
+with ribbon_3: pump_eff = st.number_input("Pump Efficiency (%)", min_value=10, max_value=100, value=75) / 100.0
+with ribbon_4: elec_cost = st.number_input("Electricity Cost ($/kWh)", value=0.12, step=0.01)
+
+rho = FLUID_DB[fluid_choice]["rho"]
+mu = FLUID_DB[fluid_choice]["mu"]
+Q = flow_rate_m3h / 3600.0
+
+st.markdown("<br>", unsafe_allow_html=True) # Spacer
 
 # ==========================================
-# 4. NETWORK BUILDER (MAIN UI)
+# 4. MIDDLE SECTION: GEOMETRY & FITTINGS CARDS
 # ==========================================
-col1, col2 = st.columns([1, 1])
+col_geo, col_fit = st.columns(2)
 
-with col1:
-    st.markdown("#### 📐 GEOMETRY")
-    pipe_dia_mm = st.number_input("Internal Diameter (mm)", min_value=10.0, value=150.0, step=10.0)
-    pipe_len_m = st.number_input("Total Length (m)", min_value=1.0, value=100.0, step=1.0)
-    mat_choice = st.selectbox("Pipe Material", options=list(MATERIAL_ROUGHNESS.keys()))
-    elevation_change = st.number_input("Elevation Change (m)", value=5.0)
-    
-    D = pipe_dia_mm / 1000.0
-    L = pipe_len_m
-    epsilon = MATERIAL_ROUGHNESS[mat_choice] / 1000.0
+with col_geo:
+    st.markdown("#### 2. Pipe Geometry")
+    with st.container(border=True):
+        g1, g2 = st.columns(2)
+        pipe_dia_mm = g1.number_input("Internal Diameter (mm)", min_value=10.0, value=150.0, step=10.0)
+        pipe_len_m = g2.number_input("Total Length (m)", min_value=1.0, value=100.0, step=1.0)
+        mat_choice = g1.selectbox("Pipe Material", options=list(MATERIAL_ROUGHNESS.keys()))
+        elevation_change = g2.number_input("Elevation Lift (m)", value=5.0)
 
-with col2:
-    st.markdown("#### 🔧 FITTINGS")
-    fittings_counts = {}
-    for fitting, k_val in FITTINGS_DB.items():
-        fittings_counts[fitting] = st.number_input(f"{fitting} (K={k_val})", min_value=0, value=0, step=1)
+with col_fit:
+    st.markdown("#### 3. Fitting Inventory")
+    with st.container(border=True):
+        fittings_counts = {}
+        f1, f2 = st.columns(2)
+        keys = list(FITTINGS_DB.keys())
+        for i, fitting in enumerate(keys):
+            target_col = f1 if i % 2 == 0 else f2
+            fittings_counts[fitting] = target_col.number_input(f"{fitting} (K={FITTINGS_DB[fitting]})", min_value=0, value=0, step=1)
+
+D = pipe_dia_mm / 1000.0
+L = pipe_len_m
+epsilon = MATERIAL_ROUGHNESS[mat_choice] / 1000.0
 
 # ==========================================
 # 5. CORE MATHEMATICS ENGINE
@@ -158,9 +148,7 @@ if Re < 2300:
     f = 64.0 / Re if Re > 0 else 0
 else:
     flow_regime = "TURBULENT"
-    term1 = (epsilon / D) / 3.7
-    term2 = 6.9 / Re
-    f = (-1.8 * np.log10(term1**1.11 + term2))**-2
+    f = (-1.8 * np.log10(((epsilon / D) / 3.7)**1.11 + 6.9 / Re))**-2
 
 h_major = f * (L / D) * (V**2 / (2 * g))
 sum_K = sum([count * FITTINGS_DB[fitting] for fitting, count in fittings_counts.items()])
@@ -169,241 +157,114 @@ h_total = h_major + h_minor + elevation_change
 P_kw = (rho * g * Q * h_total) / (pump_eff * 1000.0)
 
 # ==========================================
-# 6. CYBER DASHBOARD OUTPUT
+# 6. RESULTS DASHBOARD (Clean SaaS Look)
 # ==========================================
 st.markdown("---")
-mc1, mc2, mc3, mc4 = st.columns(4)
-mc1.markdown(f"<div class='metric-label'>Reynolds Number</div><div class='metric-value'>{Re:,.0f}</div><div style='color: #ff0055;'>{flow_regime}</div>", unsafe_allow_html=True)
-mc2.markdown(f"<div class='metric-label'>Fluid Velocity</div><div class='metric-value'>{V:.2f} m/s</div>", unsafe_allow_html=True)
-mc3.markdown(f"<div class='metric-label'>Total System Head</div><div class='metric-value'>{h_total:.2f} m</div>", unsafe_allow_html=True)
-mc4.markdown(f"<div class='metric-label'>Req. Pump Power</div><div class='metric-value'>{P_kw:.2f} kW</div>", unsafe_allow_html=True)
+st.markdown("#### 📊 Performance Analytics")
+
+with st.container(border=True):
+    mc1, mc2, mc3, mc4 = st.columns(4)
+    mc1.markdown(f"<div class='metric-label'>Reynolds Number</div><div class='metric-value'>{Re:,.0f}</div><div style='color: #64748b; font-size: 0.85rem;'>{flow_regime}</div>", unsafe_allow_html=True)
+    mc2.markdown(f"<div class='metric-label'>Fluid Velocity</div><div class='metric-value'>{V:.2f} <span style='font-size:1rem; color:#64748b;'>m/s</span></div>", unsafe_allow_html=True)
+    mc3.markdown(f"<div class='metric-label'>Total System Head</div><div class='metric-value'>{h_total:.2f} <span style='font-size:1rem; color:#64748b;'>m</span></div>", unsafe_allow_html=True)
+    mc4.markdown(f"<div class='metric-label'>Req. Pump Power</div><div class='metric-value'>{P_kw:.2f} <span style='font-size:1rem; color:#64748b;'>kW</span></div>", unsafe_allow_html=True)
 
 # ==========================================
-# 7. LIVE FLOW VISUALIZER (HTML/JS INJECTION)
+# 7. LIVE FLOW VISUALIZER (Light Theme)
 # ==========================================
-# ==========================================
-# 7. LIVE FLOW VISUALIZER (DYNAMIC JS INJECTION)
-# ==========================================
-st.markdown("---")
-st.markdown("#### 🌊 LIVE FLOW DYNAMICS")
+st.markdown("<br>", unsafe_allow_html=True)
 
-# 1. Map Python Physics to Visual Variables
-# Scale pipe height (min 60px, max 300px based on diameter)
-pipe_height_px = max(60, min(300, int(D * 1000))) 
-# Scale animation speed (higher velocity = lower duration in seconds)
+pipe_height_px = max(60, min(250, int(D * 1000))) 
 anim_duration_base = max(0.2, 2.0 / (V + 0.1)) 
-# Scale particle count based on flow rate
 particle_qty = int(max(30, min(200, Q * 6000)))
 
-# 2. Inject variables using an f-string (note the double {{}} for CSS/JS syntax)
 particle_animation = f"""
 <style>
     .pipe-container {{
         width: 100%;
         height: {pipe_height_px}px;
-        background: linear-gradient(to bottom, #0b0f19, #1e3a8a, #0b0f19);
-        border-top: 3px solid #ff0055;
-        border-bottom: 3px solid #ff0055;
+        background: linear-gradient(to bottom, #f1f5f9, #ffffff, #f1f5f9);
+        border-top: 4px solid #cbd5e1;
+        border-bottom: 4px solid #cbd5e1;
         position: relative;
         overflow: hidden;
-        border-radius: 5px;
-        transition: height 0.4s ease-out; /* Smoothly animate height changes */
+        border-radius: 2px;
+        transition: height 0.4s ease-out;
     }}
     .particle {{
         position: absolute;
-        background-color: #00f3ff;
+        background-color: #3b82f6; /* Water Blue */
         border-radius: 50%;
-        box-shadow: 0px 0px 8px 2px rgba(0, 243, 255, 0.8);
+        opacity: 0.6;
         animation: flow linear infinite;
     }}
     @keyframes flow {{
         0% {{ left: -20px; opacity: 0; }}
-        10% {{ opacity: 1; }}
-        90% {{ opacity: 1; }}
+        10% {{ opacity: 0.8; }}
+        90% {{ opacity: 0.8; }}
         100% {{ left: 100%; opacity: 0; }}
     }}
 </style>
-
 <div class="pipe-container" id="pipe"></div>
-
 <script>
     const pipe = document.getElementById('pipe');
-    const particleCount = {particle_qty};
-    const baseSpeed = {anim_duration_base};
-    
-    for(let i = 0; i < particleCount; i++) {{
+    for(let i = 0; i < {particle_qty}; i++) {{
         let p = document.createElement('div');
         p.className = 'particle';
-        
-        let size = Math.random() * 6 + 2;
-        p.style.width = size + 'px';
-        p.style.height = size + 'px';
-        
-        // Random vertical position inside the pipe
-        p.style.top = Math.random() * 90 + 5 + '%';
-        p.style.left = Math.random() * 100 + '%';
-        
-        // Speed directly tied to Python fluid velocity
-        p.style.animationDuration = (Math.random() * 0.5 * baseSpeed) + baseSpeed + 's';
+        let size = Math.random() * 8 + 4;
+        p.style.width = size + 'px'; p.style.height = size + 'px';
+        p.style.top = Math.random() * 90 + 5 + '%'; p.style.left = Math.random() * 100 + '%';
+        p.style.animationDuration = (Math.random() * 0.5 * {anim_duration_base}) + {anim_duration_base} + 's';
         p.style.animationDelay = Math.random() * 2 + 's';
-        
         pipe.appendChild(p);
     }}
 </script>
 """
-
-# Render the animation (dynamically set iframe height so it doesn't get cut off)
 components.html(particle_animation, height=pipe_height_px + 20)
-# ==========================================
-# 8. NEW VISUAL: 2D PRESSURE GRADIENT MAP
-# ==========================================
-st.markdown("#### 🌡️ DIGITAL TWIN: PRESSURE GRADIENT")
-
-x_grid = np.linspace(0, L, 50)
-y_grid = np.linspace(-D/2, D/2, 20)
-X, Y = np.meshgrid(x_grid, y_grid)
-
-P_inlet = h_total * rho * g / 1000 # kPa
-Z_pressure = P_inlet * (1 - (X / L)) 
-
-fig_pipe = go.Figure()
-
-fig_pipe.add_trace(go.Heatmap(
-    z=Z_pressure, x=x_grid, y=y_grid,
-    colorscale="Electric", 
-    zsmooth="best", 
-    colorbar=dict(
-        title=dict(text="Pressure (kPa)", font=dict(color="#00f3ff")), 
-        tickfont=dict(color="#e2e8f0"),
-        thickness=15
-    ),
-    name="Pressure Gradient"
-))
-
-fig_pipe.add_trace(go.Scatter(x=[0, L], y=[D/2, D/2], mode='lines', line=dict(color='#ff0055', width=4), name='Pipe Wall'))
-fig_pipe.add_trace(go.Scatter(x=[0, L], y=[-D/2, -D/2], mode='lines', line=dict(color='#ff0055', width=4), showlegend=False))
-
-fig_pipe.update_layout(
-    xaxis_title="Pipe Length (m)",
-    yaxis_title="Diameter (m)",
-    plot_bgcolor='#0b0f19',
-    paper_bgcolor='#0b0f19',
-    font=dict(color="#00f3ff"),
-    margin=dict(l=0, r=0, t=30, b=0),
-    xaxis=dict(showgrid=True, gridcolor='#1e3a8a', zeroline=False),
-    yaxis=dict(showgrid=True, gridcolor='#1e3a8a', zeroline=False, range=[-D, D]),
-)
-st.plotly_chart(fig_pipe, use_container_width=True)
 
 # ==========================================
-# 9. SYSTEM CURVE PLOTTING
+# 8. VISUALIZATIONS (Light Theme Plotly)
 # ==========================================
-st.markdown("#### 📈 SYSTEM RESISTANCE CURVE")
-q_array = np.linspace(0.001, Q * 1.5, 50)
-v_array = q_array / Area
-re_array = (rho * v_array * D) / mu
-f_array = np.where(re_array < 2300, 64.0 / re_array, (-1.8 * np.log10(((epsilon/D)/3.7)**1.11 + 6.9/re_array))**-2)
-h_sys_array = (f_array * (L / D) * (v_array**2 / (2 * g))) + (sum_K * (v_array**2 / (2 * g))) + elevation_change
+col_heat, col_curve = st.columns(2)
 
-fig_curve = go.Figure()
-fig_curve.add_trace(go.Scatter(x=q_array * 3600, y=h_sys_array, mode='lines', name='System Curve', line=dict(color='#00f3ff', width=3)))
-fig_curve.add_trace(go.Scatter(x=[flow_rate_m3h], y=[h_total], mode='markers+text', name='Design Point', text=['Target Op Point'], textposition='top left', marker=dict(color='#ff0055', size=12, symbol='diamond')))
+with col_heat:
+    st.markdown("##### Pressure Gradient Map")
+    x_grid, y_grid = np.linspace(0, L, 50), np.linspace(-D/2, D/2, 20)
+    X, Y = np.meshgrid(x_grid, y_grid)
+    Z_pressure = (h_total * rho * g / 1000) * (1 - (X / L)) 
+    
+    fig_pipe = go.Figure()
+    fig_pipe.add_trace(go.Heatmap(
+        z=Z_pressure, x=x_grid, y=y_grid, colorscale="Blues", zsmooth="best", 
+        colorbar=dict(title="kPa", thickness=10)
+    ))
+    fig_pipe.add_trace(go.Scatter(x=[0, L], y=[D/2, D/2], mode='lines', line=dict(color='#94a3b8', width=3), showlegend=False))
+    fig_pipe.add_trace(go.Scatter(x=[0, L], y=[-D/2, -D/2], mode='lines', line=dict(color='#94a3b8', width=3), showlegend=False))
+    
+    fig_pipe.update_layout(
+        margin=dict(l=0, r=0, t=10, b=0), height=300,
+        plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
+        xaxis=dict(showgrid=False, zeroline=False), yaxis=dict(showgrid=False, zeroline=False, range=[-D, D])
+    )
+    st.plotly_chart(fig_pipe, use_container_width=True)
 
-fig_curve.update_layout(
-    xaxis_title="Flow Rate Q (m³/hr)", yaxis_title="System Head H (m)",
-    plot_bgcolor='#0b0f19', paper_bgcolor='#0b0f19', font=dict(color="#00f3ff"),
-    margin=dict(l=0, r=0, t=20, b=0),
-    xaxis=dict(showgrid=True, gridcolor='#1e3a8a'), yaxis=dict(showgrid=True, gridcolor='#1e3a8a'),
-    legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01)
-)
-st.plotly_chart(fig_curve, use_container_width=True)
-# ==========================================
-# 10. ENTERPRISE OPEX & ECONOMICS ENGINE
-# ==========================================
-st.markdown("---")
-st.markdown("#### 💰 LIFECYCLE OPEX & SAFETY ANALYTICS")
+with col_curve:
+    st.markdown("##### Pump System Curve")
+    q_array = np.linspace(0.001, Q * 1.5, 50)
+    v_array = q_array / Area
+    re_array = (rho * v_array * D) / mu
+    f_array = np.where(re_array < 2300, 64.0 / re_array, (-1.8 * np.log10(((epsilon/D)/3.7)**1.11 + 6.9/re_array))**-2)
+    h_sys_array = (f_array * (L / D) * (v_array**2 / (2 * g))) + (sum_K * (v_array**2 / (2 * g))) + elevation_change
 
-eco_col, safety_col = st.columns(2)
-
-with eco_col:
-    with st.container(border=True):
-        st.markdown("<div style='color: #00f3ff; font-weight: bold; margin-bottom: 10px;'>POWER ECONOMICS</div>", unsafe_allow_html=True)
-        # Inputs for cost
-        elec_cost = st.number_input("Electricity Cost ($/kWh)", value=0.12, step=0.01)
-        operating_hours = st.number_input("Operating Hours/Year", value=8000, max_value=8760, step=500)
-        
-        # Calculations
-        annual_energy = P_kw * operating_hours
-        annual_cost = annual_energy * elec_cost
-        ten_year_cost = annual_cost * 10
-        
-        st.markdown(f"**Annual Energy Used:** {annual_energy:,.0f} kWh")
-        st.markdown(f"**Annual Operating Cost:** <span style='color:#ff0055'>${annual_cost:,.2f}</span>", unsafe_allow_html=True)
-        st.markdown(f"**10-Year Lifecycle Cost:** <span style='color:#ff0055'>${ten_year_cost:,.2f}</span>", unsafe_allow_html=True)
-
-with safety_col:
-    with st.container(border=True):
-        st.markdown("<div style='color: #00f3ff; font-weight: bold; margin-bottom: 10px;'>SYSTEM DIAGNOSTICS</div>", unsafe_allow_html=True)
-        
-        # Simple Cavitation / Velocity Rules of Thumb
-        if V > 3.0:
-            st.warning("⚠️ High Velocity: Risk of severe pipe erosion and water hammer.")
-        elif V < 0.5:
-            st.warning("⚠️ Low Velocity: Risk of sediment settling in pipes.")
-        else:
-            st.success("✅ Fluid Velocity is within optimal industrial limits (0.5 - 3.0 m/s).")
-            
-        if flow_regime == "TURBULENT" and Re > 100000:
-            st.info("ℹ️ Highly turbulent flow. Good for mixing, but causes high friction loss.")
-        elif flow_regime == "LAMINAR":
-            st.info("ℹ️ Laminar flow detected. Typical for high viscosity fluids or very low flow rates.")
-
-# ==========================================
-# 11. AUTOMATED REPORT GENERATION
-# ==========================================
-st.markdown("---")
-
-# Generate the text string for the report
-report_text = f"""
-=========================================
-HYDRACALC NEXUS - SYSTEM REPORT
-=========================================
-FLUID PROPERTIES:
-Fluid: {fluid_choice}
-Density: {rho} kg/m3
-Viscosity: {mu} Pa.s
-
-SYSTEM GEOMETRY:
-Pipe Diameter: {pipe_dia_mm} mm
-Pipe Length: {pipe_len_m} m
-Material: {mat_choice} (Roughness: {epsilon*1000} mm)
-Elevation Change: {elevation_change} m
-
-FLUID DYNAMICS:
-Design Flow Rate: {flow_rate_m3h} m3/hr
-Average Velocity: {V:.2f} m/s
-Reynolds Number: {Re:,.0f} ({flow_regime})
-Friction Factor (f): {f:.5f}
-
-SYSTEM LOSSES:
-Major (Friction) Loss: {h_major:.2f} m
-Minor (Fittings) Loss: {h_minor:.2f} m
-Total System Head: {h_total:.2f} m
-
-PUMP REQUIREMENTS:
-Assumed Efficiency: {pump_eff*100:.0f}%
-Required Power: {P_kw:.2f} kW
-
-ECONOMICS (10-YEAR OPEX):
-Estimated Cost: ${ten_year_cost:,.2f}
-=========================================
-Generated by HydraCalc Engineering Systems
-"""
-
-st.download_button(
-    label="📥 DOWNLOAD ENGINEERING CALCULATION REPORT (TXT)",
-    data=report_text,
-    file_name="HydraCalc_System_Report.txt",
-    mime="text/plain",
-    use_container_width=True
-)
+    fig_curve = go.Figure()
+    fig_curve.add_trace(go.Scatter(x=q_array * 3600, y=h_sys_array, mode='lines', name='System Curve', line=dict(color='#2563eb', width=3)))
+    fig_curve.add_trace(go.Scatter(x=[flow_rate_m3h], y=[h_total], mode='markers', name='Design Point', marker=dict(color='#ef4444', size=10)))
+    
+    fig_curve.update_layout(
+        margin=dict(l=0, r=0, t=10, b=0), height=300,
+        plot_bgcolor='#ffffff', paper_bgcolor='rgba(0,0,0,0)',
+        xaxis=dict(showgrid=True, gridcolor='#f1f5f9', title="Flow Rate (m³/hr)"), 
+        yaxis=dict(showgrid=True, gridcolor='#f1f5f9', title="Head (m)"),
+        showlegend=False
+    )
+    st.plotly_chart(fig_curve, use_container_width=True)
